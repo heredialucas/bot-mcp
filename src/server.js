@@ -48,17 +48,17 @@ async function getBrowser(browserType = 'chromium') {
     switch (browserType) {
       case 'firefox':
         browser = await firefox.launch({ 
-          headless: process.env.PLAYWRIGHT_HEADLESS === 'true' || false 
+          headless: true 
         });
         break;
       case 'webkit':
         browser = await webkit.launch({ 
-          headless: process.env.PLAYWRIGHT_HEADLESS === 'true' || false 
+          headless: true 
         });
         break;
       default:
         browser = await chromium.launch({ 
-          headless: process.env.PLAYWRIGHT_HEADLESS === 'true' || false 
+          headless: true 
         });
     }
     browserInstances.set(browserId, browser);
