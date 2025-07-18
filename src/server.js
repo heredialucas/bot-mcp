@@ -2,9 +2,30 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { chromium, firefox, webkit } from 'playwright';
+import { execSync } from 'child_process';
 
 // Cargar variables de entorno
 dotenv.config();
+
+// Función para instalar navegadores si no están disponibles
+async function installBrowsersIfNeeded() {
+  try {
+    console.log('🔍 Verificando si los navegadores de Playwright están instalados...');
+    
+    // Intentar lanzar chromium para verificar si está instalado
+    const browser = await chromium.launch({ headless: true });
+    await browser.close();
+    console.log('✅ Los navegadores de Playwright ya están instalados');
+  } catch (error) {
+    console.log('❌ Los navegadores de Playwright no están instalados. Instalando...');
+    try {
+      execSync('npx playwright install chromium', { stdio: 'inherit' });
+      console.log('✅ Navegadores instalados correctamente');
+    } catch (installError) {
+      console.error('❌ Error al instalar navegadores:', installError.message);
+    }
+  }
+}
 
 // Configuración del servidor HTTP
 const app = express();
@@ -724,6 +745,9 @@ app.post('/api/execute-task', async (req, res) => {
 // Función principal
 async function main() {
   try {
+    // Instalar navegadores si es necesario
+    await installBrowsersIfNeeded();
+    
     // Iniciar servidor HTTP
     app.listen(HTTP_PORT, () => {
       console.log(`🚀 Servidor HTTP iniciado en puerto ${HTTP_PORT}`);
