@@ -5,8 +5,8 @@
   "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "start": "node src/mcp-server.js",
-    "dev": "node --watch src/mcp-server.js",
+    "start": "node src/http-server.js",
+    "dev": "node --watch src/http-server.js",
     "postinstall": "npx playwright install chromium",
     "build": "npx playwright install chromium"
   },

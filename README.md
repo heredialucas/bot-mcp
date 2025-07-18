@@ -1,17 +1,14 @@
-# Bot MCP - Servidor MCP de Playwright
+# Bot MCP - Servidor HTTP con MCP de Playwright
 
-Este proyecto implementa un servidor MCP (Model Context Protocol) oficial que proporciona herramientas de Playwright para automatización web.
+Este proyecto implementa un servidor HTTP que actúa como wrapper del servidor MCP (Model Context Protocol) oficial, proporcionando endpoints REST para usar herramientas de Playwright desde aplicaciones web como Next.js.
 
 ## 🎭 Características
 
-- **Servidor MCP Estándar**: Implementa el protocolo MCP oficial usando `@modelcontextprotocol/sdk`
+- **Servidor HTTP**: Endpoints REST para usar desde Next.js u otras aplicaciones
+- **Servidor MCP Interno**: Usa el protocolo MCP oficial internamente
 - **Herramientas de Playwright**: Navegación, screenshots, interacciones, snapshots
-- **Protocolo Estándar**: Compatible con cualquier cliente MCP
-- **Navegación web**: Navegar a URLs
-- **Screenshots**: Tomar capturas de pantalla
-- **Interacciones**: Click, escritura de texto
-- **Snapshots**: Obtener información de accesibilidad de la página
-- **JavaScript**: Ejecutar código JavaScript en la página
+- **Endpoint `/api/execute-task`**: Para ejecutar tareas específicas en URLs
+- **Compatible con Render**: Despliegue automático en la nube
 
 ## 🚀 Instalación
 
@@ -28,7 +25,7 @@ npm install
 
 ## 🏃‍♂️ Uso
 
-### Iniciar el servidor MCP
+### Iniciar el servidor
 
 ```bash
 # Desarrollo
@@ -38,99 +35,279 @@ npm run dev
 npm start
 ```
 
-### Configuración del cliente MCP
+El servidor estará disponible en `http://localhost:3001`
 
-Para usar este servidor con un cliente MCP, configura tu cliente con:
+## 📡 Endpoints disponibles
 
-```json
-{
-  "mcpServers": {
-    "playwright": {
-      "command": "node",
-      "args": ["src/mcp-server.js"]
-    }
+### GET /api/status
+Obtener el estado del servidor.
+
+```bash
+curl https://tu-app.onrender.com/api/status
+```
+
+### POST /api/execute-task
+**¡El endpoint principal!** Ejecutar tareas específicas en una URL.
+
+```bash
+curl -X POST https://tu-app.onrender.com/api/execute-task \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://blogui.me/heredialucas",
+    "task": "get_forms"
+  }'
+```
+
+**Tareas disponibles:**
+- `get_title` - Obtener título de la página
+- `get_meta` - Obtener meta tags
+- `get_headers` - Obtener encabezados H1-H6
+- `get_links` - Obtener todos los enlaces
+- `get_images` - Obtener todas las imágenes
+- `get_forms` - Obtener formularios y sus campos
+- `get_text` - Obtener texto completo de la página
+- `get_all` - Obtener toda la información
+
+### POST /api/navigate
+Navegar a una URL.
+
+```bash
+curl -X POST https://tu-app.onrender.com/api/navigate \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://ejemplo.com"}'
+```
+
+### POST /api/snapshot
+Obtener snapshot de accesibilidad de la página actual.
+
+```bash
+curl -X POST https://tu-app.onrender.com/api/snapshot
+```
+
+### POST /api/click
+Hacer click en un elemento.
+
+```bash
+curl -X POST https://tu-app.onrender.com/api/click \
+  -H "Content-Type: application/json" \
+  -d '{
+    "element": "Botón de login",
+    "ref": "button[data-testid=\"login\"]"
+  }'
+```
+
+### POST /api/type
+Escribir texto en un elemento.
+
+```bash
+curl -X POST https://tu-app.onrender.com/api/type \
+  -H "Content-Type: application/json" \
+  -d '{
+    "element": "Campo de email",
+    "ref": "input[type=\"email\"]",
+    "text": "usuario@ejemplo.com"
+  }'
+```
+
+### POST /api/screenshot
+Tomar screenshot de la página.
+
+```bash
+curl -X POST https://tu-app.onrender.com/api/screenshot \
+  -H "Content-Type: application/json" \
+  -d '{"filename": "mi-screenshot.png"}'
+```
+
+### POST /api/evaluate
+Ejecutar JavaScript en la página.
+
+```bash
+curl -X POST https://tu-app.onrender.com/api/evaluate \
+  -H "Content-Type: application/json" \
+  -d '{"function": "() => document.title"}'
+```
+
+## 🔗 Uso desde Next.js
+
+### Ejemplo básico
+
+```javascript
+// pages/api/scrape.js
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const { url, task } = req.body;
+
+  try {
+    const response = await fetch('https://tu-app.onrender.com/api/execute-task', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ url, task }),
+    });
+
+    const data = await response.json();
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 }
 ```
 
-## 🛠️ Herramientas disponibles
-
-### mcp_Playwright_browser_navigate
-Navegar a una URL.
-
-**Parámetros:**
-- `url` (string, requerido): URL a la que navegar
-
-### mcp_Playwright_browser_snapshot
-Obtener snapshot de accesibilidad de la página actual.
-
-**Parámetros:** Ninguno
-
-### mcp_Playwright_browser_click
-Hacer click en un elemento.
-
-**Parámetros:**
-- `element` (string, requerido): Descripción del elemento
-- `ref` (string, requerido): Selector CSS del elemento
-
-### mcp_Playwright_browser_type
-Escribir texto en un elemento.
-
-**Parámetros:**
-- `element` (string, requerido): Descripción del elemento
-- `ref` (string, requerido): Selector CSS del elemento
-- `text` (string, requerido): Texto a escribir
-
-### mcp_Playwright_browser_take_screenshot
-Tomar screenshot de la página.
-
-**Parámetros:**
-- `filename` (string, opcional): Nombre del archivo para guardar
-
-### mcp_Playwright_browser_evaluate
-Ejecutar JavaScript en la página.
-
-**Parámetros:**
-- `function` (string, requerido): Función JavaScript a ejecutar
-
-## 📝 Ejemplo de uso
-
-### Con un cliente MCP
+### Ejemplo con formularios
 
 ```javascript
-// Ejemplo de uso con un cliente MCP
-const result = await client.callTool('mcp_Playwright_browser_navigate', {
-  url: 'https://ejemplo.com'
-});
+// pages/api/get-forms.js
+export default async function handler(req, res) {
+  const { url } = req.body;
 
-const snapshot = await client.callTool('mcp_Playwright_browser_snapshot', {});
+  try {
+    const response = await fetch('https://tu-app.onrender.com/api/execute-task', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        url, 
+        task: 'get_forms' 
+      }),
+    });
 
-const clickResult = await client.callTool('mcp_Playwright_browser_click', {
-  element: 'Botón de login',
-  ref: 'button[data-testid="login"]'
-});
+    const data = await response.json();
+    
+    if (data.success) {
+      res.status(200).json({
+        forms: data.result.forms,
+        message: 'Formularios encontrados'
+      });
+    } else {
+      res.status(400).json({ error: data.error });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
 ```
 
-### Flujo típico
+### Ejemplo con navegación y clicks
 
-1. **Navegar a una página**
-2. **Obtener snapshot** para ver elementos disponibles
-3. **Hacer click** en elementos usando selectores del snapshot
-4. **Escribir texto** en formularios
-5. **Tomar screenshot** del resultado
+```javascript
+// pages/api/automate.js
+export default async function handler(req, res) {
+  const { url, actions } = req.body;
 
-## 🌐 Despliegue
+  try {
+    // 1. Navegar a la URL
+    await fetch('https://tu-app.onrender.com/api/navigate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
 
-El servidor MCP se puede desplegar en cualquier plataforma que soporte Node.js:
+    // 2. Ejecutar acciones
+    for (const action of actions) {
+      if (action.type === 'click') {
+        await fetch('https://tu-app.onrender.com/api/click', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            element: action.element,
+            ref: action.ref
+          }),
+        });
+      } else if (action.type === 'type') {
+        await fetch('https://tu-app.onrender.com/api/type', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            element: action.element,
+            ref: action.ref,
+            text: action.text
+          }),
+        });
+      }
+    }
 
-- **Local**: Ejecutar directamente con `node src/mcp-server.js`
-- **Docker**: Crear imagen con Node.js y Playwright
-- **Cloud**: Render, Railway, Heroku, etc.
+    // 3. Tomar screenshot del resultado
+    const screenshotResponse = await fetch('https://tu-app.onrender.com/api/screenshot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: 'resultado.png' }),
+    });
+
+    const screenshotData = await screenshotResponse.json();
+
+    res.status(200).json({
+      success: true,
+      message: 'Automación completada',
+      screenshot: screenshotData.result
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+```
+
+## 🌐 Despliegue en Render
+
+El proyecto está configurado para desplegarse automáticamente en Render:
+
+1. Conecta tu repositorio a Render
+2. Configura como servicio web
+3. El script de build instalará automáticamente los navegadores de Playwright
+
+**URL del servidor desplegado:** `https://bot-mcp.onrender.com`
+
+## 📝 Ejemplos de uso
+
+### Obtener formularios de login
+
+```bash
+curl -X POST https://bot-mcp.onrender.com/api/execute-task \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://blogui.me/heredialucas",
+    "task": "get_forms"
+  }'
+```
+
+### Obtener toda la información de una página
+
+```bash
+curl -X POST https://bot-mcp.onrender.com/api/execute-task \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://ejemplo.com",
+    "task": "get_all"
+  }'
+```
+
+### Navegar y hacer click
+
+```bash
+# 1. Navegar
+curl -X POST https://bot-mcp.onrender.com/api/navigate \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://ejemplo.com"}'
+
+# 2. Hacer click
+curl -X POST https://bot-mcp.onrender.com/api/click \
+  -H "Content-Type: application/json" \
+  -d '{
+    "element": "Botón de login",
+    "ref": "button[type=\"submit\"]"
+  }'
+```
 
 ## 🔧 Configuración
 
 ### Variables de entorno
 
+- `HTTP_PORT` - Puerto del servidor HTTP (default: 3001)
 - `PLAYWRIGHT_HEADLESS` - Modo headless del navegador (default: true)
 
 ## 📄 Licencia
