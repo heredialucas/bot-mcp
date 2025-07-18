@@ -1,24 +1,9 @@
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
 // Cargar variables de entorno
 dotenv.config();
-
-// Configuración del servidor MCP
-const server = new Server(
-  {
-    name: 'playwright-mcp-server',
-    version: '1.0.0',
-  },
-  {
-    capabilities: {
-      tools: {},
-    },
-  }
-);
 
 // Configuración del servidor HTTP
 const app = express();
@@ -31,9 +16,21 @@ app.use(express.json());
 // Almacenamiento para instancias de Playwright
 let browserInstances = new Map();
 
-// Herramientas MCP de Playwright
-server.setRequestHandler('tools/list', async () => {
-  return {
+// Endpoints HTTP para tu app de Next.js
+
+// GET - Obtener estado del servidor
+app.get('/api/status', (req, res) => {
+  res.json({
+    status: 'running',
+    timestamp: new Date().toISOString(),
+    browserInstances: browserInstances.size,
+    message: 'Servidor MCP con Playwright funcionando correctamente'
+  });
+});
+
+// GET - Listar herramientas disponibles
+app.get('/api/tools', (req, res) => {
+  res.json({
     tools: [
       {
         name: 'mcp_Playwright_browser_navigate',
@@ -167,40 +164,6 @@ server.setRequestHandler('tools/list', async () => {
         }
       }
     ]
-  };
-});
-
-// Manejador para ejecutar herramientas de Playwright
-server.setRequestHandler('tools/call', async (request) => {
-  const { name, arguments: args } = request.params;
-  
-  try {
-    // Aquí implementarías la lógica para ejecutar las herramientas de Playwright
-    // Por ahora, simulamos la respuesta
-    console.log(`Ejecutando herramienta: ${name}`, args);
-    
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `Herramienta ${name} ejecutada con éxito`
-        }
-      ]
-    };
-  } catch (error) {
-    console.error(`Error ejecutando herramienta ${name}:`, error);
-    throw new Error(`Error ejecutando herramienta: ${error.message}`);
-  }
-});
-
-// Endpoints HTTP para tu app de Next.js
-
-// GET - Obtener estado del servidor
-app.get('/api/status', (req, res) => {
-  res.json({
-    status: 'running',
-    timestamp: new Date().toISOString(),
-    browserInstances: browserInstances.size
   });
 });
 
@@ -358,6 +321,45 @@ app.post('/api/type', async (req, res) => {
   }
 });
 
+// POST - Ejecutar herramienta MCP
+app.post('/api/mcp/tools/call', async (req, res) => {
+  try {
+    const { name, arguments: args } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        error: 'Nombre de herramienta es requerido'
+      });
+    }
+    
+    console.log(`Ejecutando herramienta MCP: ${name}`, args);
+    
+    // Aquí implementarías la lógica para ejecutar las herramientas de Playwright
+    // Por ahora, simulamos la respuesta
+    const result = {
+      success: true,
+      tool: name,
+      arguments: args,
+      timestamp: new Date().toISOString(),
+      content: [
+        {
+          type: 'text',
+          text: `Herramienta ${name} ejecutada con éxito`
+        }
+      ]
+    };
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Error ejecutando herramienta MCP:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Función principal
 async function main() {
   try {
@@ -366,17 +368,16 @@ async function main() {
       console.log(`🚀 Servidor HTTP iniciado en puerto ${HTTP_PORT}`);
       console.log(`📡 Endpoints disponibles:`);
       console.log(`   GET  /api/status`);
+      console.log(`   GET  /api/tools`);
       console.log(`   POST /api/playwright`);
       console.log(`   POST /api/navigate`);
       console.log(`   POST /api/screenshot`);
       console.log(`   POST /api/click`);
       console.log(`   POST /api/type`);
+      console.log(`   POST /api/mcp/tools/call`);
+      console.log(`\n🤖 Servidor MCP HTTP funcionando correctamente`);
+      console.log(`🌐 URL: http://localhost:${HTTP_PORT}`);
     });
-    
-    // Iniciar servidor MCP
-    const transport = new StdioServerTransport();
-    await server.connect(transport);
-    console.log('🤖 Servidor MCP iniciado y conectado');
     
   } catch (error) {
     console.error('Error iniciando servidor:', error);
