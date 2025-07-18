@@ -2,7 +2,7 @@
   "name": "bot-mcp",
   "version": "1.0.0",
   "description": "MCP server with Playwright integration and HTTP API for Next.js",
-  "main": "src/server.js",
+  "main": "src/http-server.js",
   "type": "module",
   "scripts": {
     "start": "node src/http-server.js",
