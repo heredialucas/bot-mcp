@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "playwright-bot": {
+      "command": "node",
+      "args": ["src/server.js"],
+      "env": {
+        "HTTP_PORT": "3001",
+        "PLAYWRIGHT_BROWSER": "chromium",
+        "PLAYWRIGHT_HEADLESS": "false"
+      }
+    }
+  }
+} 
