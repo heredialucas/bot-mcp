@@ -1,5 +1,5 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { HttpServerTransport } from '@modelcontextprotocol/sdk/server/http.js';
 import { chromium } from 'playwright';
 import { execSync } from 'child_process';
 
@@ -23,6 +23,28 @@ const server = new Server(
     },
   }
 );
+
+// Tool definitions
+server.setRequestHandler('tools/list', async () => {
+  return {
+    tools: [
+      {
+        name: 'scrape_webpage',
+        description: 'Scrape content from a webpage',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            url: {
+              type: 'string',
+              description: 'The URL to scrape'
+            }
+          },
+          required: ['url']
+        }
+      }
+    ]
+  };
+});
 
 // Tool to scrape a webpage
 server.setRequestHandler('tools/call', async (request) => {
@@ -68,27 +90,11 @@ server.setRequestHandler('tools/call', async (request) => {
   throw new Error(`Unknown tool: ${name}`);
 });
 
-// Tool definitions
-server.setRequestHandler('tools/list', async () => {
-  return {
-    tools: [
-      {
-        name: 'scrape_webpage',
-        description: 'Scrape content from a webpage',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            url: {
-              type: 'string',
-              description: 'The URL to scrape'
-            }
-          },
-          required: ['url']
-        }
-      }
-    ]
-  };
+const PORT = process.env.PORT || 3000;
+const transport = new HttpServerTransport({
+  port: PORT,
+  host: '0.0.0.0'
 });
 
-const transport = new StdioServerTransport();
-await server.connect(transport); 
+await server.connect(transport);
+console.log(`MCP Server running on port ${PORT}`); 
