@@ -22,6 +22,18 @@ npm install
 npx playwright install
 ```
 
+## Configuración para Render
+
+**Build Step:**
+```bash
+npm run build
+```
+
+**Start Command:**
+```bash
+npm start
+```
+
 ## Uso
 
 ### Iniciar el servidor
