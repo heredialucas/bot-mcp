@@ -22,13 +22,6 @@ npm install
 npx playwright install
 ```
 
-3. Crear archivo `.env` (opcional):
-```env
-HTTP_PORT=3001
-PLAYWRIGHT_BROWSER=chromium
-PLAYWRIGHT_HEADLESS=false
-```
-
 ## Uso
 
 ### Iniciar el servidor
@@ -122,7 +115,7 @@ Desde tu aplicación Next.js, puedes hacer llamadas al servidor:
 
 ```javascript
 // Ejemplo de navegación
-const response = await fetch('http://localhost:3001/api/navigate', {
+const response = await fetch('https://bot-mcp.onrender.com/api/navigate', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -136,35 +129,18 @@ const result = await response.json();
 console.log(result);
 ```
 
-## Configuración MCP
 
-Para usar este servidor con un cliente MCP, agrega esta configuración:
-
-```json
-{
-  "mcpServers": {
-    "playwright": {
-      "command": "node",
-      "args": ["src/server.js"],
-      "env": {
-        "HTTP_PORT": "3001"
-      }
-    }
-  }
-}
-```
 
 ## Desarrollo
 
 El servidor está estructurado para facilitar la extensión:
 
-1. **Herramientas MCP**: Agregar nuevas herramientas en el manejador `tools/list`
-2. **Endpoints HTTP**: Agregar nuevos endpoints en la sección de Express
-3. **Lógica de Playwright**: Implementar la lógica real en los manejadores de herramientas
+1. **Endpoints HTTP**: Agregar nuevos endpoints en la sección de Express
+2. **Lógica de Playwright**: Implementar la lógica real en los manejadores de herramientas
 
 ## Notas
 
-- El servidor actualmente simula las respuestas de Playwright
-- Para implementar la funcionalidad real, necesitarás agregar la lógica de Playwright en los manejadores correspondientes
+- El servidor incluye funcionalidad real de Playwright
 - Las instancias de navegador se almacenan en memoria (Map)
-- Considera implementar persistencia para sesiones de navegador 
+- Soporta múltiples navegadores (chromium, firefox, webkit)
+- Incluye funcionalidades de scraping, login y automatización web 
