@@ -1,32 +1,17 @@
 {
-  "name": "bot-mcp",
+  "name": "bot-mcp-server",
   "version": "1.0.0",
-  "description": "MCP server with Playwright integration and HTTP API for Next.js",
-  "main": "src/http-server.js",
+  "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node src/http-server.js",
-    "dev": "node --watch src/http-server.js",
-    "postinstall": "npx playwright install chromium",
-    "build": "npx playwright install chromium"
+    "start": "node index.js",
+    "postinstall": "npx playwright install chromium"
   },
-  "keywords": [
-    "mcp",
-    "playwright",
-    "automation",
-    "browser"
-  ],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "@executeautomation/playwright-mcp-server": "^1.0.6",
-    "@modelcontextprotocol/sdk": "^1.16.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2",
+    "@modelcontextprotocol/sdk": "^0.4.0",
     "playwright": "^1.40.0"
   },
-  "devDependencies": {
-    "@playwright/test": "^1.40.0"
+  "engines": {
+    "node": ">=18.0.0"
   }
-}
+} 

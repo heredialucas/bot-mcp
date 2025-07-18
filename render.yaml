@@ -1,7 +1,0 @@
-services:
-  - type: web
-    name: bot-mcp
-    runtime: node
-    buildCommand: npm install && npx playwright install chromium
-    startCommand: node src/http-server.js
-    plan: free 
