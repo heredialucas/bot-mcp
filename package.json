@@ -5,8 +5,8 @@
   "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "start": "node src/mcp-proxy-server.js",
-    "dev": "node --watch src/mcp-proxy-server.js",
+    "start": "node src/mcp-server.js",
+    "dev": "node --watch src/mcp-server.js",
     "postinstall": "npx playwright install chromium",
     "build": "npx playwright install chromium"
   },
@@ -20,6 +20,7 @@
   "license": "ISC",
   "dependencies": {
     "@executeautomation/playwright-mcp-server": "^1.0.6",
+    "@modelcontextprotocol/sdk": "^1.16.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",

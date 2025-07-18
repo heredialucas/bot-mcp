@@ -1,11 +1,12 @@
-# Bot MCP - Servidor MCP Proxy con Playwright
+# Bot MCP - Servidor MCP de Playwright
 
-Este proyecto es un servidor HTTP que actúa como proxy para el servidor MCP de Playwright de ExecuteAutomation. Permite usar las herramientas MCP de Playwright a través de endpoints HTTP.
+Este proyecto implementa un servidor MCP (Model Context Protocol) oficial que proporciona herramientas de Playwright para automatización web.
 
 ## 🎭 Características
 
-- **Servidor MCP Proxy**: Usa el servidor MCP de Playwright existente de [@executeautomation/playwright-mcp-server](https://github.com/executeautomation/mcp-playwright)
-- **Endpoints HTTP**: Acceso a herramientas MCP a través de API REST
+- **Servidor MCP Estándar**: Implementa el protocolo MCP oficial usando `@modelcontextprotocol/sdk`
+- **Herramientas de Playwright**: Navegación, screenshots, interacciones, snapshots
+- **Protocolo Estándar**: Compatible con cualquier cliente MCP
 - **Navegación web**: Navegar a URLs
 - **Screenshots**: Tomar capturas de pantalla
 - **Interacciones**: Click, escritura de texto
@@ -25,24 +26,9 @@ npm install
 # Los navegadores de Playwright se instalarán automáticamente
 ```
 
-## 🔧 Configuración
-
-El proyecto usa el servidor MCP de Playwright de ExecuteAutomation:
-
-```json
-{
-  "mcpServers": {
-    "playwright": {
-      "command": "npx",
-      "args": ["-y", "@executeautomation/playwright-mcp-server"]
-    }
-  }
-}
-```
-
 ## 🏃‍♂️ Uso
 
-### Iniciar el servidor
+### Iniciar el servidor MCP
 
 ```bash
 # Desarrollo
@@ -52,127 +38,107 @@ npm run dev
 npm start
 ```
 
-El servidor estará disponible en `http://localhost:3001`
+### Configuración del cliente MCP
 
-### Endpoints disponibles
+Para usar este servidor con un cliente MCP, configura tu cliente con:
 
-#### GET /api/status
-Obtener estado del servidor
-
-```bash
-curl http://localhost:3001/api/status
+```json
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "node",
+      "args": ["src/mcp-server.js"]
+    }
+  }
+}
 ```
 
-#### POST /api/navigate
-Navegar a una URL
+## 🛠️ Herramientas disponibles
 
-```bash
-curl -X POST http://localhost:3001/api/navigate \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com"}'
+### mcp_Playwright_browser_navigate
+Navegar a una URL.
+
+**Parámetros:**
+- `url` (string, requerido): URL a la que navegar
+
+### mcp_Playwright_browser_snapshot
+Obtener snapshot de accesibilidad de la página actual.
+
+**Parámetros:** Ninguno
+
+### mcp_Playwright_browser_click
+Hacer click en un elemento.
+
+**Parámetros:**
+- `element` (string, requerido): Descripción del elemento
+- `ref` (string, requerido): Selector CSS del elemento
+
+### mcp_Playwright_browser_type
+Escribir texto en un elemento.
+
+**Parámetros:**
+- `element` (string, requerido): Descripción del elemento
+- `ref` (string, requerido): Selector CSS del elemento
+- `text` (string, requerido): Texto a escribir
+
+### mcp_Playwright_browser_take_screenshot
+Tomar screenshot de la página.
+
+**Parámetros:**
+- `filename` (string, opcional): Nombre del archivo para guardar
+
+### mcp_Playwright_browser_evaluate
+Ejecutar JavaScript en la página.
+
+**Parámetros:**
+- `function` (string, requerido): Función JavaScript a ejecutar
+
+## 📝 Ejemplo de uso
+
+### Con un cliente MCP
+
+```javascript
+// Ejemplo de uso con un cliente MCP
+const result = await client.callTool('mcp_Playwright_browser_navigate', {
+  url: 'https://ejemplo.com'
+});
+
+const snapshot = await client.callTool('mcp_Playwright_browser_snapshot', {});
+
+const clickResult = await client.callTool('mcp_Playwright_browser_click', {
+  element: 'Botón de login',
+  ref: 'button[data-testid="login"]'
+});
 ```
 
-#### POST /api/screenshot
-Tomar screenshot
+### Flujo típico
 
-```bash
-curl -X POST http://localhost:3001/api/screenshot \
-  -H "Content-Type: application/json" \
-  -d '{"filename": "mi-screenshot.png"}'
-```
+1. **Navegar a una página**
+2. **Obtener snapshot** para ver elementos disponibles
+3. **Hacer click** en elementos usando selectores del snapshot
+4. **Escribir texto** en formularios
+5. **Tomar screenshot** del resultado
 
-#### POST /api/snapshot
-Obtener snapshot de la página
+## 🌐 Despliegue
 
-```bash
-curl -X POST http://localhost:3001/api/snapshot \
-  -H "Content-Type: application/json"
-```
+El servidor MCP se puede desplegar en cualquier plataforma que soporte Node.js:
 
-#### POST /api/click
-Hacer click en un elemento
+- **Local**: Ejecutar directamente con `node src/mcp-server.js`
+- **Docker**: Crear imagen con Node.js y Playwright
+- **Cloud**: Render, Railway, Heroku, etc.
 
-```bash
-curl -X POST http://localhost:3001/api/click \
-  -H "Content-Type: application/json" \
-  -d '{"element": "botón de login", "ref": "button[type=submit]"}'
-```
+## 🔧 Configuración
 
-#### POST /api/type
-Escribir texto
+### Variables de entorno
 
-```bash
-curl -X POST http://localhost:3001/api/type \
-  -H "Content-Type: application/json" \
-  -d '{"element": "campo de email", "ref": "input[type=email]", "text": "usuario@ejemplo.com"}'
-```
-
-#### POST /api/evaluate
-Ejecutar JavaScript
-
-```bash
-curl -X POST http://localhost:3001/api/evaluate \
-  -H "Content-Type: application/json" \
-  -d '{"function": "() => document.title"}'
-```
-
-#### POST /api/mcp/execute
-Ejecutar cualquier herramienta MCP directamente
-
-```bash
-curl -X POST http://localhost:3001/api/mcp/execute \
-  -H "Content-Type: application/json" \
-  -d '{"tool": "mcp_Playwright_browser_navigate", "args": {"url": "https://example.com"}}'
-```
-
-## 🛠️ Herramientas MCP disponibles
-
-El servidor usa las siguientes herramientas del servidor MCP de Playwright:
-
-- `mcp_Playwright_browser_navigate` - Navegar a URL
-- `mcp_Playwright_browser_snapshot` - Obtener snapshot de la página
-- `mcp_Playwright_browser_click` - Hacer click en elementos
-- `mcp_Playwright_browser_type` - Escribir texto
-- `mcp_Playwright_browser_take_screenshot` - Tomar screenshots
-- `mcp_Playwright_browser_evaluate` - Ejecutar JavaScript
-
-## 🌐 Despliegue en Render
-
-El proyecto está configurado para desplegarse en Render:
-
-1. Conecta tu repositorio a Render
-2. Configura como servicio web
-3. El script de build instalará automáticamente los navegadores de Playwright
-
-## 📝 Ejemplo de uso completo
-
-```bash
-# 1. Navegar a una página
-curl -X POST https://tu-app.onrender.com/api/navigate \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://blogui.me/heredialucas"}'
-
-# 2. Obtener snapshot para ver elementos
-curl -X POST https://tu-app.onrender.com/api/snapshot \
-  -H "Content-Type: application/json"
-
-# 3. Hacer click en un botón (usando ref del snapshot)
-curl -X POST https://tu-app.onrender.com/api/click \
-  -H "Content-Type: application/json" \
-  -d '{"element": "botón de login", "ref": "button[type=submit]"}'
-
-# 4. Tomar screenshot
-curl -X POST https://tu-app.onrender.com/api/screenshot \
-  -H "Content-Type: application/json" \
-  -d '{"filename": "resultado.png"}'
-```
-
-## 🔗 Enlaces útiles
-
-- [Servidor MCP de Playwright](https://github.com/executeautomation/mcp-playwright)
-- [Documentación MCP](https://modelcontextprotocol.io/)
-- [Playwright](https://playwright.dev/)
+- `PLAYWRIGHT_HEADLESS` - Modo headless del navegador (default: true)
 
 ## 📄 Licencia
 
-MIT 
+MIT
+
+## 🔗 Enlaces útiles
+
+- [Model Context Protocol](https://modelcontextprotocol.io/)
+- [MCP SDK para Node.js](https://modelcontextprotocol.io/quickstart/server#node)
+- [Playwright](https://playwright.dev/) 
